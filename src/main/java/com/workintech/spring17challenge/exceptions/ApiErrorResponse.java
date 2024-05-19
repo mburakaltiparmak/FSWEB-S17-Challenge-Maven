@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
+
 @AllArgsConstructor
 public class ApiErrorResponse {
     private Integer status;

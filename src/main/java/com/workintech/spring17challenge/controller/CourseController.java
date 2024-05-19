@@ -51,16 +51,7 @@ public class CourseController {
         }
         throw new ApiException("Course not found with name: " + name, HttpStatus.NOT_FOUND);
     }
-    /*
-    @PostMapping
-    public Course saveCourse(@RequestBody Course course){
-        //Validation gelecek (Response değeri 201)
-        CourseValidation.isRepetitiveCourse(courses, course.getId(), course.getName());
-        this.courses.put(course.getId(),course);
-        return courses.get(course.getId());
-    }
 
-     */
     @PostMapping
     public ResponseEntity<ApiResponse> create(@RequestBody Course course){
         CourseValidation.checkCredit(course.getCredit());
