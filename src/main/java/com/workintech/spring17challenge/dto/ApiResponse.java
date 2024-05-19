@@ -1,8 +1,7 @@
 package com.workintech.spring17challenge.dto;
 
-import com.workintech.spring17challenge.model.Course;
+import com.workintech.spring17challenge.entity.Course;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

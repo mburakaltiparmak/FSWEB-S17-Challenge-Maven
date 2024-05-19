@@ -1,11 +1,10 @@
 package com.workintech.spring17challenge.validation;
 
 import com.workintech.spring17challenge.exceptions.ApiException;
-import com.workintech.spring17challenge.model.Course;
+import com.workintech.spring17challenge.entity.Course;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
-import java.util.Map;
 
 public class CourseValidation {
     public static void isIdValid(Integer id){

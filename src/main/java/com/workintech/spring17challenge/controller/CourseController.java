@@ -2,11 +2,8 @@ package com.workintech.spring17challenge.controller;
 
 import com.workintech.spring17challenge.dto.ApiResponse;
 import com.workintech.spring17challenge.exceptions.ApiException;
-import com.workintech.spring17challenge.model.Course;
-import com.workintech.spring17challenge.entity.HighCourseGpa;
-import com.workintech.spring17challenge.entity.LowCourseGpa;
-import com.workintech.spring17challenge.entity.MediumCourseGpa;
-import com.workintech.spring17challenge.model.CourseGpa;
+import com.workintech.spring17challenge.entity.Course;
+import com.workintech.spring17challenge.entity.CourseGpa;
 import com.workintech.spring17challenge.validation.CourseValidation;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/courses")
