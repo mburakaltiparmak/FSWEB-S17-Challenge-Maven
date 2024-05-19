@@ -1,12 +1,18 @@
 package com.workintech.spring17challenge.controller;
 
+import com.workintech.spring17challenge.dto.ApiResponse;
+import com.workintech.spring17challenge.exceptions.ApiException;
 import com.workintech.spring17challenge.model.Course;
 import com.workintech.spring17challenge.entity.HighCourseGpa;
 import com.workintech.spring17challenge.entity.LowCourseGpa;
 import com.workintech.spring17challenge.entity.MediumCourseGpa;
 import com.workintech.spring17challenge.model.CourseGpa;
+import com.workintech.spring17challenge.validation.CourseValidation;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -17,50 +23,102 @@ import java.util.Map;
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
-    private Map<Integer, Course> courses;
-    private LowCourseGpa lowCourseGpa;
-    private MediumCourseGpa mediumCourseGpa;
-    private HighCourseGpa highCourseGpa;
+
+    private List<Course> courses;
+    private CourseGpa lowCourseGpa;
+    private CourseGpa mediumCourseGpa;
+    private CourseGpa highCourseGpa;
+
     @Autowired
-    public CourseController(LowCourseGpa lowCourseGpa, MediumCourseGpa mediumCourseGpa, HighCourseGpa highCourseGpa){
+    public CourseController(@Qualifier("lowCourseGpa") CourseGpa lowCourseGpa,
+                            @Qualifier("mediumCourseGpa") CourseGpa mediumCourseGpa,
+                            @Qualifier("highCourseGpa") CourseGpa highCourseGpa){
         this.lowCourseGpa=lowCourseGpa;
         this.mediumCourseGpa=mediumCourseGpa;
         this.highCourseGpa=highCourseGpa;
     }
     @PostConstruct
     public void init(){
-        this.courses=new HashMap<>();
+        this.courses=new ArrayList<>();
     }
     @GetMapping
-    public List getCourseList(){
-        return new ArrayList<>(this.courses.values());
+    public List<Course> getAll(){
+        return this.courses;
     }
     @GetMapping("/{name}")
-    public Course getCourseName(@PathVariable("name") String name){
-        //Validation gelecek
-        return courses.get(name);
+    public Course getByName(@PathVariable String name){
+
+        CourseValidation.checkName(name);
+        for (Course course : courses) {
+            if (course.getName().equalsIgnoreCase(name)) {
+                return course;
+            }
+        }
+        throw new ApiException("Course not found with name: " + name, HttpStatus.NOT_FOUND);
     }
+    /*
     @PostMapping
     public Course saveCourse(@RequestBody Course course){
         //Validation gelecek (Response değeri 201)
-
+        CourseValidation.isRepetitiveCourse(courses, course.getId(), course.getName());
         this.courses.put(course.getId(),course);
         return courses.get(course.getId());
     }
+
+     */
+    @PostMapping
+    public ResponseEntity<ApiResponse> create(@RequestBody Course course){
+        CourseValidation.checkCredit(course.getCredit());
+        CourseValidation.checkName(course.getName());
+        //CourseValidation.isRepetitiveCourse(courses, course.getId(), course.getName());
+        courses.add(course);
+        Integer totalGpa = getTotalGpa(course);
+        ApiResponse apiResponse = new ApiResponse(course,totalGpa);
+        return new ResponseEntity<>(apiResponse,HttpStatus.CREATED);
+    }
+
+
+
     @PutMapping("/{id}")
-    public Course updateCourse(@PathVariable("id") Integer id,@RequestBody Course course){
-        //Validation gelecek
-        if(courses.containsKey(id)){
-            this.courses.put(id,course);
-            return courses.get(id);
+    public ResponseEntity<ApiResponse> updateCourse(@PathVariable("id") Integer id,@RequestBody Course course){
+        CourseValidation.isRepetitiveCourse(courses, id, course.getName());
+        CourseValidation.isIdValid(id);
+        CourseValidation.checkName(course.getName());
+        CourseValidation.checkCredit(course.getCredit());
+        Course existingCourse = getExistingCourseById(id);
+        int indexOfExisting = courses.indexOf(existingCourse);
+        courses.set(indexOfExisting,course);
+        Integer totalGpa = getTotalGpa(course);
+        ApiResponse apiResponse = new ApiResponse(courses.get(indexOfExisting),totalGpa);
+        return new ResponseEntity<>(apiResponse,HttpStatus.OK);
+
+
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteCourse(@PathVariable("id") Integer id){
+        CourseValidation.isIdValid(id);
+        Course existingCourse = getExistingCourseById(id);
+        courses.remove(existingCourse);
+    }
+    private Integer getTotalGpa(Course course) {
+        Integer totalGpa = null;
+        if(course.getCredit() <= 2){
+            totalGpa = course.getGrade().getCoefficient()*course.getCredit()*lowCourseGpa.getGpa();
+        }
+        else if (course.getCredit() == 3){
+            totalGpa = course.getGrade().getCoefficient()*course.getCredit()*mediumCourseGpa.getGpa();
         }
         else {
-            return saveCourse(course);
+            totalGpa = course.getGrade().getCoefficient()*course.getCredit()*highCourseGpa.getGpa();
         }
+        return totalGpa;
     }
-    @DeleteMapping("/{id}")
-    public Course deleteCourse(@PathVariable("id") Integer id){
-        //Validation gelecek
-        return courses.remove(id);
+    private Course getExistingCourseById(Integer id){
+        return courses.stream()
+                .filter(course1 -> course1.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ApiException("course not found with id " + id, HttpStatus.NOT_FOUND));
+
     }
 }
