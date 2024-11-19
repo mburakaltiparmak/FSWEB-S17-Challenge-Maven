@@ -20,8 +20,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<ApiErrorResponse> handleException(Exception exception) {
         log.error("apiexception occured! Exception details: ", exception.getMessage());
-        ApiErrorResponse apiErrorResponse = new ApiErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.getMessage(), System.currentTimeMillis());
-        return new ResponseEntity<>(apiErrorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        ApiErrorResponse apiErrorResponse = new ApiErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage(), System.currentTimeMillis());
+        return new ResponseEntity<>(apiErrorResponse, HttpStatus.BAD_REQUEST);
 
     }
 
